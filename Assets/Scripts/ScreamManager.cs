@@ -1,10 +1,11 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement; // ← Agregado para reiniciar escena
 
 /// <summary>
 /// Sistema de Screamer (RF18)
-/// Muestra imagen de susto y reproduce sonido cuando el fantasma atrapa al jugador
+/// Muestra imagen de susto, reproduce sonido y reinicia la escena
 /// </summary>
 public class ScreamerManager : MonoBehaviour
 {
@@ -22,6 +23,12 @@ public class ScreamerManager : MonoBehaviour
     [Tooltip("Volumen del sonido del screamer (0-1)")]
     [Range(0f, 1f)]
     public float volumenScreamer = 1.0f;
+
+    [Tooltip("Reiniciar escena después del screamer")]
+    public bool reiniciarEscena = true;
+
+    [Tooltip("Tiempo adicional antes de reiniciar (después del screamer)")]
+    public float tiempoAntesDeReiniciar = 0.5f;
 
     [Header("=== ESTADO ===")]
     [Tooltip("Indica si el screamer está activo actualmente")]
@@ -65,7 +72,7 @@ public class ScreamerManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Activa el screamer: muestra imagen y reproduce sonido
+    /// Activa el screamer: muestra imagen, reproduce sonido y reinicia escena
     /// </summary>
     void ActivarScreamer()
     {
@@ -85,7 +92,7 @@ public class ScreamerManager : MonoBehaviour
         {
             imagenScreamer.gameObject.SetActive(true);
 
-            // Opcional: Fade in rápido
+            // Fade in rápido
             Color color = imagenScreamer.color;
             color.a = 0f;
             imagenScreamer.color = color;
@@ -115,15 +122,35 @@ public class ScreamerManager : MonoBehaviour
         // Esperar duración del screamer
         yield return new WaitForSeconds(duracionScreamer);
 
-        // Ocultar imagen
-        if (imagenScreamer != null)
-        {
-            imagenScreamer.gameObject.SetActive(false);
-        }
-
-        screamerActivo = false;
-
         Debug.Log("✅ Screamer finalizado");
+
+        // Reiniciar escena si está activado
+        if (reiniciarEscena)
+        {
+            Debug.Log("🔄 Reiniciando escena...");
+
+            // Esperar un poco más antes de reiniciar (opcional)
+            if (tiempoAntesDeReiniciar > 0)
+            {
+                yield return new WaitForSeconds(tiempoAntesDeReiniciar);
+            }
+
+            // Obtener el nombre de la escena actual
+            string escenaActual = SceneManager.GetActiveScene().name;
+
+            // Reiniciar la escena
+            SceneManager.LoadScene(escenaActual);
+        }
+        else
+        {
+            // Si no reinicia, solo ocultar
+            if (imagenScreamer != null)
+            {
+                imagenScreamer.gameObject.SetActive(false);
+            }
+
+            screamerActivo = false;
+        }
     }
 
     /// <summary>
@@ -139,5 +166,14 @@ public class ScreamerManager : MonoBehaviour
         }
 
         screamerActivo = false;
+    }
+
+    /// <summary>
+    /// Reiniciar escena manualmente (puede llamarse desde otros scripts)
+    /// </summary>
+    public static void ReiniciarEscena()
+    {
+        string escenaActual = SceneManager.GetActiveScene().name;
+        SceneManager.LoadScene(escenaActual);
     }
 }
