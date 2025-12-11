@@ -382,13 +382,69 @@ public class IA_Fantasma_Base : MonoBehaviour
     {
         Debug.Log("💀 ¡JUGADOR ATRAPADO!");
 
+        // RF18: Activar screamer
+        ScreamerManager.MostrarScreamer();
+
         // 🔮 AQUÍ SE CONECTARÁ CON:
         // - RF17: Sistema de vidas
-        // - RF18: Screamer
         // - RF19: Reaparición
 
-        // Por ahora, volver a patrullar
+        // Volver a patrullar después del screamer
+        StartCoroutine(VolverAPatrullarDespuesDeScreamer());
+    }
+
+    /// <summary>
+    /// Espera a que termine el screamer antes de volver a patrullar
+    /// </summary>
+    IEnumerator VolverAPatrullarDespuesDeScreamer()
+    {
+        // Detener el movimiento durante el screamer
+        agent.isStopped = true;
+
+        // Esperar duración del screamer (ajustar según tu configuración)
+        yield return new WaitForSeconds(2.5f);
+
+        // Reanudar movimiento
+        agent.isStopped = false;
+
+        // Volver a patrullar
         VolverAPatrulla();
+    }
+
+    /// <summary>
+    /// Detectar colisión física con el player (alternativa a distancia)
+    /// </summary>
+    void OnCollisionEnter(Collision collision)
+    {
+        // Verificar si colisionó con el player
+        if (collision.gameObject.transform == player)
+        {
+            Debug.Log("💥 Colisión detectada con el player");
+
+            // Solo atrapar si está persiguiendo
+            if (estadoActual == EstadoFantasma.Persiguiendo)
+            {
+                AtraparJugador();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Detectar trigger con el player (si usas colliders como trigger)
+    /// </summary>
+    void OnTriggerEnter(Collider other)
+    {
+        // Verificar si entró en trigger con el player
+        if (other.transform == player)
+        {
+            Debug.Log("💥 Trigger detectado con el player");
+
+            // Solo atrapar si está persiguiendo
+            if (estadoActual == EstadoFantasma.Persiguiendo)
+            {
+                AtraparJugador();
+            }
+        }
     }
 
     /// <summary>
